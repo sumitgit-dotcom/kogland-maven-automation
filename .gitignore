@@ -1,0 +1,39 @@
+# Maven
+target/
+dependency-reduced-pom.xml
+release.properties
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+buildNumber.properties
+
+# Eclipse
+.classpath
+.project
+.settings/
+bin/
+.metadata/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs / reports
+*.log
+test-output/
+reports/
+allure-results/
+
+# TestNG / Cucumber
+testng-failed.xml
