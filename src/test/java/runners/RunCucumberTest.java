@@ -6,8 +6,14 @@ import org.testng.annotations.DataProvider;
 
 @CucumberOptions(
     features = "src/test/resources/features",
-    glue = "com.kogland.steps",
-    plugin = {"pretty"}
+    glue = "com.kogland",
+    plugin = {
+        "pretty",
+        "html:target/cucumber-reports/cucumber.html",
+        "json:target/cucumber-reports/cucumber.json"
+    },
+    monochrome = true,
+    dryRun = false
 )
 public class RunCucumberTest extends AbstractTestNGCucumberTests {
 
