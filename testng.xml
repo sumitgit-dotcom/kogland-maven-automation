@@ -2,23 +2,13 @@
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
 <suite name="Kogland Automation Suite" verbose="2" parallel="false">
 
-    <!-- Retry + result-recording listeners -->
     <listeners>
         <listener class-name="com.kogland.listeners.RetryTransformer"/>
         <listener class-name="com.kogland.listeners.TestResultRecorder"/>
     </listeners>
 
-    <!-- Search flow -->
-    <test name="Search Flow" enabled="true">
-        <parameter name="cucumber.filter.tags" value="@search"/>
-        <classes>
-            <class name="runners.RunCucumberTest"/>
-        </classes>
-    </test>
-
-    <!-- Wishlist + guest login flow -->
-    <test name="Wishlist Flow" enabled="true">
-        <parameter name="cucumber.filter.tags" value="@wishlist"/>
+    <test name="All Medicines Flow">
+        
         <classes>
             <class name="runners.RunCucumberTest"/>
         </classes>
