@@ -35,20 +35,20 @@ public class Hooks {
     @Before(order = 0)
     public void setUp(Scenario scenario) {
         String browser = System.getProperty("browser", "chrome").toLowerCase();
+        boolean isCI = System.getenv("CI") != null; // Detects GitHub Actions
         BROWSER.set(browser);
 
         WebDriver driver;
         switch (browser) {
             case "firefox": {
                 FirefoxOptions opts = new FirefoxOptions();
-                opts.addArguments("--start-maximized");
+                if (isCI) opts.addArguments("-headless");
                 driver = new FirefoxDriver(opts);
                 break;
             }
             case "edge": {
                 EdgeOptions opts = new EdgeOptions();
-                opts.addArguments("--start-maximized");
-                opts.addArguments("--disable-notifications");
+                if (isCI) opts.addArguments("--headless=new");
                 driver = new EdgeDriver(opts);
                 break;
             }
@@ -58,6 +58,14 @@ public class Hooks {
                 opts.addArguments("--start-maximized");
                 opts.addArguments("--disable-notifications");
                 opts.addArguments("--remote-allow-origins=*");
+                
+                // CI-specific configurations
+                if (isCI) {
+                    opts.addArguments("--headless=new");
+                    opts.addArguments("--no-sandbox");
+                    opts.addArguments("--disable-dev-shm-usage");
+                    opts.addArguments("--window-size=1920,1080");
+                }
                 driver = new ChromeDriver(opts);
                 break;
             }
@@ -65,13 +73,13 @@ public class Hooks {
 
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(0));
         driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(60));
-        driver.manage().window().maximize();
+        if (!isCI) driver.manage().window().maximize();
 
         DRIVER.set(driver);
         WAIT.set(new WebDriverWait(driver, Duration.ofSeconds(25)));
 
         System.out.println(">>> @Before: scenario='" + scenario.getName()
-                + "' browser=" + browser + " thread=" + Thread.currentThread().getId());
+                + "' browser=" + browser + " | CI Mode: " + isCI);
     }
 
     @After(order = 0)
@@ -96,11 +104,9 @@ public class Hooks {
     }
 
     private void attachFailureArtifacts(Scenario scenario, WebDriver driver) {
-       
         byte[] png = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES);
         scenario.attach(png, "image/png", "failure-screenshot-" + scenario.getName());
 
-       
         try {
             Path dir = Path.of("target", "failures");
             Files.createDirectories(dir);
@@ -113,19 +119,16 @@ public class Hooks {
             System.err.println(">>> Could not save screenshot: " + e.getMessage());
         }
 
-      
         String url, title;
         try { url = driver.getCurrentUrl(); } catch (Exception e) { url = "(unavailable)"; }
         try { title = driver.getTitle(); } catch (Exception e) { title = "(unavailable)"; }
 
-        StringBuilder meta = new StringBuilder();
-        meta.append("Scenario: ").append(scenario.getName()).append("\n");
-        meta.append("Browser: ").append(BROWSER.get()).append("\n");
-        meta.append("URL: ").append(url).append("\n");
-        meta.append("Title: ").append(title).append("\n");
-        meta.append("Time: ").append(LocalDateTime.now()).append("\n");
+        String meta = "Scenario: " + scenario.getName() + "\n" +
+                      "Browser: " + BROWSER.get() + "\n" +
+                      "URL: " + url + "\n" +
+                      "Title: " + title + "\n" +
+                      "Time: " + LocalDateTime.now() + "\n";
 
-        scenario.attach(meta.toString().getBytes(), "text/plain", "failure-context");
-        System.out.println(">>> Failure context attached for: " + scenario.getName());
+        scenario.attach(meta.getBytes(), "text/plain", "failure-context");
     }
 }
