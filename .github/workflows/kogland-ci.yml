@@ -1,0 +1,40 @@
+name: Kogland UI Automation CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30 # Prevents hung WebDriver sessions from burning minutes 
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven # Speeds up subsequent runs 
+
+      - name: Run Tests with Maven
+        run: mvn clean test -Dtest=RunCucumberTest -Dbrowser=chrome
+        env:
+          CI: true # Ensures your Hooks.java triggers headless mode
+
+      # Upload Failure Screenshots & Reports
+      - name: Upload Test Artifacts
+        uses: actions/upload-artifact@v4
+        if: always() # Upload even if tests fail 
+        with:
+          name: test-results-and-screenshots
+          path: |
+            target/cucumber-reports/
+            target/failures/
+            target/surefire-reports/
+          retention-days: 7
